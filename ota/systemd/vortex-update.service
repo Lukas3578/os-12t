@@ -1,0 +1,20 @@
+[Unit]
+Description=VortexOS OTA-Kanal prüfen und geprüfte Updates vorbereiten
+Documentation=https://github.com/Lukas3578/os-12t/tree/main/ota/docs
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=/etc/vortexos/ota.conf
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/libexec/vortexos/vortex-update auto
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/vortexos/update /var/cache/vortexos/update
+UMask=0077
+TimeoutStartSec=12min
+
+# The client only checks and stages a fully validated update. It never installs here.

@@ -1,0 +1,14 @@
+# Local build and test output
+/out/
+*.part
+*.ota
+
+# OTA state and cache if tests are run from the project directory
+/ota-state/
+/ota-cache/
+
+# Never commit a release private key
+*.pem
+*.key
+*.p8
+!ota/keys/*.pub

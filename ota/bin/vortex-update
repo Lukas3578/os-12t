@@ -1,0 +1,239 @@
+#!/bin/sh
+# VortexOS OTA client. Requires: POSIX sh, curl-compatible fetcher, openssl, sha256sum.
+# This client NEVER writes system partitions directly. A device-specific installer is required.
+set -eu
+
+PATH='/usr/sbin:/usr/bin:/sbin:/bin'
+PROGRAM='vortex-update'
+CONFIG="${VORTEX_UPDATE_CONFIG:-/etc/vortexos/ota.conf}"
+STATE_DIR="${VORTEX_UPDATE_STATE_DIR:-/var/lib/vortexos/update}"
+CACHE_DIR="${VORTEX_UPDATE_CACHE_DIR:-/var/cache/vortexos/update}"
+PUBKEY="${VORTEX_UPDATE_PUBKEY:-/usr/share/vortexos/keys/vortex-release-ed25519.pub}"
+FETCHER="${VORTEX_FETCH:-curl}"
+INSTALLER="${VORTEX_INSTALLER:-/usr/libexec/vortexos/apply-ota}"
+
+log() { printf '%s\n' "[$PROGRAM] $*" >&2; }
+die() { log "FEHLER: $*"; exit 1; }
+usage() {
+  cat <<'EOF'
+Verwendung: vortex-update <check|stage|auto|status|confirm|install>
+  check    : signierten Stable-Kanal prüfen
+  stage    : gültiges Update herunterladen und mit SHA-256 prüfen
+  auto     : für den Hintergrunddienst; nur prüfen und ggf. herunterladen
+  status   : vorbereiteten Update-Status anzeigen
+  confirm  : Installation nach sichtbarer Nutzerfreigabe markieren
+  install  : ausschliesslich den gerätespezifischen Installer aufrufen
+EOF
+}
+
+[ -r "$CONFIG" ] || die "Konfiguration fehlt: $CONFIG"
+# shellcheck disable=SC1090
+. "$CONFIG"
+
+: "${REPOSITORY:?REPOSITORY fehlt in der Konfiguration}"
+: "${CHANNEL_URL:?CHANNEL_URL fehlt in der Konfiguration}"
+: "${DEVICE:?DEVICE fehlt in der Konfiguration}"
+: "${CURRENT_VERSION:?CURRENT_VERSION fehlt in der Konfiguration}"
+: "${MAX_ASSET_BYTES:?MAX_ASSET_BYTES fehlt in der Konfiguration}"
+: "${AUTO_DOWNLOAD:?AUTO_DOWNLOAD fehlt in der Konfiguration}"
+: "${REQUIRE_INTERACTIVE_CONFIRMATION:?REQUIRE_INTERACTIVE_CONFIRMATION fehlt in der Konfiguration}"
+
+mkdir -p "$STATE_DIR" "$CACHE_DIR"
+
+fetch() {
+  url="$1"
+  output="$2"
+  case "$url" in
+    https://*) ;;
+    *) die "Unsichere URL verworfen: $url" ;;
+  esac
+  "$FETCHER" --fail --location --silent --show-error --proto '=https' --tlsv1.2 --connect-timeout 15 --max-time 600 --output "$output" "$url"
+}
+
+json_string() {
+  key="$1"
+  file="$2"
+  sed -n "s/^[[:space:]]*\"$key\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\"[[:space:]]*,\{0,1\}[[:space:]]*$/\1/p" "$file" | head -n 1
+}
+
+json_number() {
+  key="$1"
+  file="$2"
+  sed -n "s/^[[:space:]]*\"$key\"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\)[[:space:]]*,\{0,1\}[[:space:]]*$/\1/p" "$file" | head -n 1
+}
+
+valid_version() {
+  value="$1"
+  printf '%s\n' "$value" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'
+}
+
+version_is_newer() {
+  candidate="$1"
+  installed="$2"
+  valid_version "$candidate" || return 1
+  valid_version "$installed" || return 1
+  awk -v candidate="$candidate" -v installed="$installed" 'BEGIN {
+    split(candidate, c, "."); split(installed, i, ".");
+    for (part = 1; part <= 3; part++) {
+      if ((c[part] + 0) > (i[part] + 0)) exit 0;
+      if ((c[part] + 0) < (i[part] + 0)) exit 1;
+    }
+    exit 1;
+  }'
+}
+
+valid_sha256() {
+  [ "${#1}" -eq 64 ] && printf '%s\n' "$1" | grep -Eq '^[0-9a-f]{64}$'
+}
+
+safe_asset_url() {
+  url="$1"
+  prefix="https://github.com/$REPOSITORY/releases/download/"
+  case "$url" in
+    "$prefix"*) relative_path="${url#"$prefix"}" ;;
+    *) return 1 ;;
+  esac
+  [ -n "$relative_path" ] || return 1
+  case "$relative_path" in /*|*'?'*|*'#'*|*'..'*|*'//'*) return 1 ;; esac
+  case "$relative_path" in *.ota) ;; *) return 1 ;; esac
+  return 0
+}
+
+now() { date -u '+%Y-%m-%dT%H:%M:%SZ'; }
+
+channel_files() {
+  CHANNEL_MANIFEST="$STATE_DIR/channel.json"
+  CHANNEL_SIGNATURE="$STATE_DIR/channel.json.sig"
+  fetch "$CHANNEL_URL" "$CHANNEL_MANIFEST"
+  fetch "$CHANNEL_URL.sig" "$CHANNEL_SIGNATURE"
+}
+
+verify_channel() {
+  [ -r "$PUBKEY" ] || die "Öffentlicher Freigabeschlüssel fehlt: $PUBKEY"
+  openssl pkeyutl -verify -pubin -inkey "$PUBKEY" -rawin -in "$CHANNEL_MANIFEST" -sigfile "$CHANNEL_SIGNATURE" >/dev/null 2>&1 || die "Ungültige Kanal-Signatur"
+
+  UPDATE_VERSION="$(json_string version "$CHANNEL_MANIFEST")"
+  UPDATE_DEVICE="$(json_string device "$CHANNEL_MANIFEST")"
+  UPDATE_URL="$(json_string payload_url "$CHANNEL_MANIFEST")"
+  UPDATE_SHA256="$(json_string sha256 "$CHANNEL_MANIFEST")"
+  UPDATE_SIZE="$(json_number size_bytes "$CHANNEL_MANIFEST")"
+  UPDATE_NOTES="$(json_string notes_url "$CHANNEL_MANIFEST")"
+  UPDATE_MINIMUM="$(json_string min_version "$CHANNEL_MANIFEST")"
+
+  [ "$UPDATE_DEVICE" = "$DEVICE" ] || die "Update ist für '$UPDATE_DEVICE', nicht für '$DEVICE'"
+  valid_version "$UPDATE_VERSION" || die "Ungültige Update-Version"
+  valid_version "$UPDATE_MINIMUM" || die "Ungültige Mindestversion"
+  version_is_newer "$UPDATE_VERSION" "$CURRENT_VERSION" || die "Kein neueres Update verfügbar"
+  version_is_newer "$CURRENT_VERSION" "$UPDATE_MINIMUM" || [ "$CURRENT_VERSION" = "$UPDATE_MINIMUM" ] || die "Installierte Version erfüllt Mindestversion nicht"
+  safe_asset_url "$UPDATE_URL" || die "Payload-URL liegt nicht im festen GitHub-Release-Pfad"
+  valid_sha256 "$UPDATE_SHA256" || die "Ungültige SHA-256-Prüfsumme"
+  [ -n "$UPDATE_SIZE" ] && [ "$UPDATE_SIZE" -gt 0 ] && [ "$UPDATE_SIZE" -le "$MAX_ASSET_BYTES" ] || die "Ungültige oder zu große Paketgröße"
+  [ "$UPDATE_NOTES" = "https://github.com/$REPOSITORY/releases/tag/v$UPDATE_VERSION" ] || die "Ungültige Release-Notes-URL"
+}
+
+write_pending() {
+  pending_tmp="$STATE_DIR/pending.json.tmp"
+  cat >"$pending_tmp" <<EOF
+{
+  "state": "downloaded",
+  "version": "$UPDATE_VERSION",
+  "device": "$UPDATE_DEVICE",
+  "payload_path": "$CACHE_DIR/vortexos-$UPDATE_DEVICE-$UPDATE_VERSION.ota",
+  "payload_url": "$UPDATE_URL",
+  "sha256": "$UPDATE_SHA256",
+  "size_bytes": $UPDATE_SIZE,
+  "notes_url": "$UPDATE_NOTES",
+  "downloaded_at": "$(now)",
+  "confirmed_at": ""
+}
+EOF
+  mv "$pending_tmp" "$STATE_DIR/pending.json"
+  chmod 600 "$STATE_DIR/pending.json"
+}
+
+pending_value() {
+  json_string "$1" "$STATE_DIR/pending.json"
+}
+
+check() {
+  channel_files
+  verify_channel
+  printf '%s\n' "Update verfügbar: VortexOS $UPDATE_VERSION für $UPDATE_DEVICE"
+  printf '%s\n' "Änderungen: $UPDATE_NOTES"
+  printf '%s\n' "Paket: $UPDATE_SIZE Byte · SHA-256 $UPDATE_SHA256"
+}
+
+stage() {
+  check
+  target="$CACHE_DIR/vortexos-$UPDATE_DEVICE-$UPDATE_VERSION.ota"
+  partial="$target.part"
+  rm -f "$partial"
+  fetch "$UPDATE_URL" "$partial"
+  actual_size="$(wc -c < "$partial" | tr -d ' ')"
+  [ "$actual_size" = "$UPDATE_SIZE" ] || { rm -f "$partial"; die "Paketgröße stimmt nicht überein"; }
+  actual_sha256="$(sha256sum "$partial" | awk '{print $1}')"
+  [ "$actual_sha256" = "$UPDATE_SHA256" ] || { rm -f "$partial"; die "Paket-Prüfsumme stimmt nicht überein"; }
+  mv "$partial" "$target"
+  chmod 600 "$target"
+  write_pending
+  printf '%s\n' "Update vorbereitet: VortexOS $UPDATE_VERSION"
+  printf '%s\n' "Installation wartet auf Bestätigung in den Einstellungen."
+}
+
+status() {
+  if [ ! -r "$STATE_DIR/pending.json" ]; then
+    printf '%s\n' 'Kein Update vorbereitet.'
+    return 0
+  fi
+  version="$(pending_value version)"
+  device="$(pending_value device)"
+  payload="$(pending_value payload_path)"
+  confirmed="$(pending_value confirmed_at)"
+  [ "$device" = "$DEVICE" ] || die "Ungültiger Pending-Status für anderes Gerät"
+  [ -r "$payload" ] || die "Vorbereitetes Paket fehlt"
+  if [ -n "$confirmed" ]; then
+    printf '%s\n' "Bestätigt: VortexOS $version · Neustart zur Installation bereit"
+  else
+    printf '%s\n' "Vorbereitet: VortexOS $version · Bestätigung erforderlich"
+  fi
+}
+
+confirm() {
+  [ -r "$STATE_DIR/pending.json" ] || die "Kein vorbereitetes Update vorhanden"
+  version="$(pending_value version)"
+  payload="$(pending_value payload_path)"
+  [ -r "$payload" ] || die "Vorbereitetes Paket fehlt"
+  [ "$REQUIRE_INTERACTIVE_CONFIRMATION" = '1' ] || die "Interaktive Bestätigung ist in dieser Konfiguration deaktiviert"
+  sed "s/\"confirmed_at\": \"\"/\"confirmed_at\": \"$(now)\"/" "$STATE_DIR/pending.json" > "$STATE_DIR/pending.json.tmp"
+  mv "$STATE_DIR/pending.json.tmp" "$STATE_DIR/pending.json"
+  chmod 600 "$STATE_DIR/pending.json"
+  printf '%s\n' "Bestätigt: VortexOS $version. Ein kontrollierter Neustart kann jetzt angefordert werden."
+}
+
+install() {
+  [ -r "$STATE_DIR/pending.json" ] || die "Kein vorbereitetes Update vorhanden"
+  confirmed="$(pending_value confirmed_at)"
+  [ -n "$confirmed" ] || die "Installation braucht eine sichtbare Nutzerbestätigung"
+  payload="$(pending_value payload_path)"
+  [ -r "$payload" ] || die "Vorbereitetes Paket fehlt"
+  [ -x "$INSTALLER" ] || die "Kein gerätespezifischer Installer installiert; Systempartitionen bleiben unverändert"
+  exec "$INSTALLER" "$payload" "$STATE_DIR/pending.json"
+}
+
+auto() {
+  if [ "$AUTO_DOWNLOAD" = '1' ]; then
+    stage
+  else
+    check
+  fi
+}
+
+case "${1:-}" in
+  check) check ;;
+  stage) stage ;;
+  auto) auto ;;
+  status) status ;;
+  confirm) confirm ;;
+  install) install ;;
+  *) usage; exit 64 ;;
+esac

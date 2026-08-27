@@ -1,0 +1,12 @@
+[Unit]
+Description=VortexOS OTA-Prüfung alle 12 Stunden
+
+[Timer]
+OnBootSec=7min
+OnUnitActiveSec=12h
+RandomizedDelaySec=25min
+Persistent=true
+Unit=vortex-update.service
+
+[Install]
+WantedBy=timers.target

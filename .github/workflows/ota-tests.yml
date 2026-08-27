@@ -1,0 +1,25 @@
+name: VortexOS OTA security tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ota/**'
+      - 'Makefile'
+  pull_request:
+    paths:
+      - 'ota/**'
+      - 'Makefile'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-ota-client:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Verify OTA security model
+        run: make test

@@ -1,0 +1,7 @@
+#!/bin/sh
+# This deliberate safety stub is replaced only by a tested Xiaomi 12T installer.
+set -eu
+
+printf '%s\n' '[vortex-apply-ota] Kein getesteter plato-Installer vorhanden; keine Partition wurde verändert.' >&2
+printf '%s\n' '[vortex-apply-ota] Ein echter Installer benötigt validierten Partitionsplan, Recovery/A-B-Integration und erfolgreichen Test auf einem separaten Gerät.' >&2
+exit 75
