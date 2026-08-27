@@ -46,16 +46,20 @@ playButton.addEventListener('click', () => {
   showToast(playing ? 'Wiedergabe gestartet · Vorschau' : 'Wiedergabe pausiert · Vorschau');
 });
 
+document.querySelector('[data-action="services"]').addEventListener('click', () => {
+  window.location.href = 'extended-system-preview.html';
+});
+
 document.querySelector('[data-action="flow-info"]').addEventListener('click', () => {
   showToast('Flow stimmt Benachrichtigungsruhe und Systemstil aufeinander ab.');
 });
 
 document.querySelector('[data-action="storage"]').addEventListener('click', () => {
-  showToast('184 GB frei · Medien und Dateien kannst du hier später verwalten.');
+  window.location.href = 'extended-system-preview.html#now';
 });
 
 document.querySelector('[data-action="privacy"]').addEventListener('click', () => {
-  showToast('Guard aktiv · Keine offenen Datenschutzwarnungen.');
+  window.location.href = 'extended-system-preview.html#guard';
 });
 
 document.querySelector('[data-action="update"]').addEventListener('click', () => {

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>VortexOS Services</title>
+  <link rel="stylesheet" href="../../ota/ui/vortex-motion.css">
+  <link rel="stylesheet" href="extended-system-preview.css">
+</head>
+<body>
+  <div class="vortex-ambient" aria-hidden="true"><span class="ambient-orb one"></span><span class="ambient-orb two"></span><span class="ambient-orb three"></span><span class="ambient-grid"></span><span class="ambient-stars"></span></div>
+  <main class="stage">
+    <section class="phone vortex-device" aria-label="VortexOS Systemdienste Vorschau">
+      <div class="cutout" aria-hidden="true"></div><header class="statusbar"><span data-time>12:30</span><span>▰▰▰ ⌁ <b>75</b>%</span></header>
+      <div class="screen">
+        <header class="appbar vortex-reveal"><button data-action="back" aria-label="Zum System Hub">‹</button><div><p>VORTEXOS</p><h1>Systemdienste</h1></div><button class="more vortex-press" data-action="all-read" aria-label="Alle Benachrichtigungen lesen">✓</button></header>
+        <nav class="service-tabs vortex-reveal delay-1" aria-label="Systembereiche"><button class="selected" data-tab="now">Jetzt</button><button data-tab="energy">Energie</button><button data-tab="guard">Guard</button><button data-tab="find">Find</button></nav>
+
+        <section class="service-panel active vortex-reveal delay-2" data-panel="now">
+          <section class="hero-card"><div class="hero-orbit" aria-hidden="true"></div><div><p>ALLES IM BLICK</p><h2>Ruhig. Geschützt. Bereit.</h2><span class="trust"><i></i> Keine Aktion nötig</span></div><span class="hero-mark">◌</span></section>
+          <section class="quick-row"><button class="quick-action vortex-press" data-action="torch"><span>✦</span><b>Licht</b><small>Aus</small></button><button class="quick-action vortex-press" data-action="screenshot"><span>▣</span><b>Screenshot</b><small>Bereit</small></button><button class="quick-action vortex-press" data-action="camera"><span>◉</span><b>Kamera</b><small>Schnellstart</small></button></section>
+          <section class="section-card notifications"><div class="section-title"><div><p>BENACHRICHTIGUNGEN</p><h2 data-notification-title>2 Wichtig</h2></div><button data-action="all-read">Alle gelesen</button></div><article class="notification" data-notification><span class="avatar pulse">◌</span><div><b>Pulse</b><p>Dein Fokusfenster beginnt in 15 Minuten.</p></div><time>jetzt</time></article><article class="notification" data-notification><span class="avatar guard">⌾</span><div><b>Vortex Guard</b><p>Keine neuen sensiblen Zugriffe erkannt.</p></div><time>12 min</time></article><p class="empty-state" hidden>Alles erledigt. Dein Raum bleibt ruhig.</p></section>
+          <section class="section-card storage"><div class="section-title"><div><p>SPEICHER & DATEIEN</p><h2>184 GB frei</h2></div><span class="storage-badge">72 %</span></div><div class="storage-bar"><i style="width:28%"></i><i style="width:18%"></i><i style="width:13%"></i></div><div class="storage-labels"><span>Medien · 31 GB</span><span>Apps · 22 GB</span><span>Downloads · 14 GB</span></div><button class="secondary vortex-press" data-action="clean">Bereinigung sicher vormerken <span>›</span></button></section>
+        </section>
+
+        <section class="service-panel" data-panel="energy"><section class="hero-card energy-hero"><div><p>ENERGIE & LEISTUNG</p><h2 data-energy-title>Balance hält durch.</h2><span class="trust"><i></i> Bis 23:40 · geschätzt</span></div><strong>75<small>%</small></strong></section><section class="mode-stack"><button class="mode selected vortex-press" data-mode="balance"><span>◐</span><div><b>Balance</b><small>Leistung und Ruhe im Einklang</small></div><i>✓</i></button><button class="mode vortex-press" data-mode="endurance"><span>◌</span><div><b>Ausdauer</b><small>Weniger Hintergrundaktivität</small></div><i>✓</i></button><button class="mode vortex-press" data-mode="boost"><span>ϟ</span><div><b>Boost</b><small>Volle Reaktion für Spiele und Medien</small></div><i>✓</i></button></section><section class="section-card charge-card"><p>INTELLIGENTES LADEN</p><h2>Schützt die Akkuroutine.</h2><small>VortexOS passt die Ladezeit an deinen Rhythmus an.</small><button class="switch is-on vortex-press" data-action="charge" aria-pressed="true"><i></i></button></section></section>
+
+        <section class="service-panel" data-panel="guard"><section class="hero-card guard-hero"><div><p>VORTEX GUARD</p><h2>Deine Grenzen sind klar.</h2><span class="trust"><i></i> 0 Warnungen heute</span></div><span class="hero-mark">⌾</span></section><section class="section-card access-card"><div class="section-title"><div><p>LETZTE ZUGRIFFE</p><h2>Transparent protokolliert</h2></div></div><article><span class="access-icon camera">◉</span><div><b>Kamera</b><small>Heute · 16:20 · nur von Kamera</small></div><i>✓</i></article><article><span class="access-icon mic">◌</span><div><b>Mikrofon</b><small>Heute · 15:47 · nur von Musik</small></div><i>✓</i></article><article><span class="access-icon clipboard">▣</span><div><b>Zwischenablage</b><small>Keine App im Hintergrund</small></div><i>✓</i></article></section><section class="guard-actions"><button class="secondary vortex-press" data-action="privacy-report">Privatsphäre-Bericht öffnen <span>›</span></button><button class="secondary vortex-press" data-action="clipboard">Zwischenablage leeren <span>›</span></button></section></section>
+
+        <section class="service-panel" data-panel="find"><section class="hero-card find-hero"><div><p>VORTEX FIND</p><h2>Dein Gerät. Auffindbar.</h2><span class="trust"><i></i> Dieser Bereich ist lokal geschützt</span></div><span class="hero-mark">⌖</span></section><section class="find-map"><span class="map-ring r1"></span><span class="map-ring r2"></span><span class="map-dot">◌</span><p>Letzte sichere Verbindung<br><b>Hier · gerade eben</b></p></section><section class="find-actions"><button class="primary vortex-press" data-action="ring"><span>◌</span> Gerät klingeln lassen</button><button class="secondary vortex-press" data-action="find-setup">Gerätesuche sicher einrichten <span>›</span></button></section><p class="find-note">Eine echte Gerätesuche benötigt später deine Anmeldung und eine ausdrückliche Standortfreigabe.</p></section>
+      </div>
+      <div class="home-indicator" aria-hidden="true"></div><aside class="toast" role="status" aria-live="polite"></aside>
+    </section>
+    <aside class="briefing"><div class="brand"><span>◌</span> VORTEX<span>OS</span></div><p>SYSTEM SERVICES · 0.1</p><h2>Mehr Kontrolle.<br>Weniger Reibung.</h2><div class="feature-list"><span>Benachrichtigungen</span><span>Energie</span><span>Guard</span><span>Find</span></div><small>Interaktive Systemstudie mit sicheren, lokalen Vorschauaktionen.</small></aside>
+  </main>
+  <script src="extended-system-preview.js"></script>
+</body>
+</html>

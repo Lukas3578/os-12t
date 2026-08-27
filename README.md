@@ -16,6 +16,7 @@ Es ist bewusst noch **kein flashbares Betriebssystem**. Bevor ein Update auf dem
 | Update-Erlebnis | Interaktive Updateansicht mit Details, Release-Notizen, Aufschub und bestätigtem Neustart |
 | Bewegungsdesign | Wiederverwendbarer animierter Neon-Obsidian-Hintergrund, sanfte Kartenübergänge und automatische Reduktion der Bewegung |
 | System Hub | Interaktive Verbindung-, Fokus-, Medien-, Speicher-, Datenschutz- und Update-Steuerung als zentrale VortexOS-Ansicht |
+| Erweiterte Systemdienste | Benachrichtigungen, Energieprofile, Speicherüberblick, Guard-Zugriffstimeline, lokale Gerätesuche und Schnellaktionen |
 | Homescreen & Gesten | Anpassbares App-Raster, Dock, Start-Widget, Hintergrundbewegung sowie konfigurierbare Wisch- und Doppeltipp-Gesten |
 | Partitionsschutz | Kein getesteter `plato`-Installer vorhanden; Anwendung wird abgelehnt |
 
@@ -67,6 +68,8 @@ Lade anschließend das OTA-Paket als Asset eines GitHub-Releases mit dem Tag `v0
 | `ota/docs/MOTION_SYSTEM.md` | Bewegungsprinzipien, Dauerstufen und Zugänglichkeit |
 | `system-hub/ui/system-hub-preview.html` | Interaktives VortexOS-System-Hub mit zusätzlichen Alltagsfunktionen |
 | `system-hub/docs/SYSTEM_HUB.md` | Funktionsumfang, Systemgrenzen und Updateverknüpfung des Hubs |
+| `system-hub/ui/extended-system-preview.html` | Interaktive Zentrale für Benachrichtigungen, Energie, Guard, Speicher und Find |
+| `system-hub/docs/EXTENDED_SYSTEM_FEATURES.md` | Funktionsumfang und Sicherheitsgrenzen der zusätzlichen Systemdienste |
 | `homescreen/ui/homescreen-preview.html` | Interaktiver, konfigurierbarer VortexOS-Homescreen mit Gestenvorschau |
 | `system-hub/docs/HOME_AND_GESTURES.md` | Gestenbelegung, Homescreen-Anpassung und Integrationsgrenzen |
 
