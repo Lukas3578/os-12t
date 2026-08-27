@@ -20,6 +20,7 @@ lint:
 	@sh -n $(OTA)/tests/test-vortex-update.sh
 	@node --check $(OTA)/ui/update-center-preview.js
 	@node --check $(ROOT)/system-hub/ui/system-hub-preview.js
+	@node --check $(ROOT)/homescreen/ui/homescreen-preview.js
 	@printf '%s\n' 'Shell- und UI-Syntax: OK'
 
 test: lint

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>VortexOS Home</title>
+  <link rel="stylesheet" href="../../ota/ui/vortex-motion.css">
+  <link rel="stylesheet" href="homescreen-preview.css">
+</head>
+<body>
+  <div class="vortex-ambient" aria-hidden="true"><span class="ambient-orb one"></span><span class="ambient-orb two"></span><span class="ambient-orb three"></span><span class="ambient-grid"></span><span class="ambient-stars"></span></div>
+  <main class="stage">
+    <section class="phone vortex-device" aria-label="VortexOS Homescreen-Vorschau">
+      <div class="cutout" aria-hidden="true"></div>
+      <header class="statusbar"><span data-time>12:30</span><span>▰▰▰ ⌁ <b>75</b>%</span></header>
+      <section class="home-shell" data-home-shell>
+        <header class="home-header vortex-reveal"><div><p>VORTEXOS · PLATO</p><h1>Guten Abend, <span>Lukas.</span></h1></div><button class="home-settings vortex-press" data-action="customize" aria-label="Homescreen anpassen">✦</button></header>
+
+        <button class="gesture-pill vortex-reveal delay-1 vortex-press" data-action="show-gestures"><span>↕</span><b>Gesten aktiv</b><small>Wische oder halte gedrückt</small></button>
+
+        <section class="home-widget vortex-reveal delay-2" data-widget="glance" aria-label="Vortex Glance Widget"><div class="widget-glow" aria-hidden="true"></div><div class="widget-copy"><p data-widget-kicker>VORTEX GLANCE</p><h2 data-widget-title>Alles im Flow.</h2><small data-widget-detail>18:00 · Fokus bereit · 75 % Energie</small></div><span class="widget-mark" data-widget-icon>◌</span></section>
+
+        <section class="app-grid grid-4 vortex-reveal delay-3" data-app-grid aria-label="Apps">
+          <button class="app vortex-press" data-app="camera"><span class="app-icon camera">◉</span><b>Kamera</b></button>
+          <button class="app vortex-press" data-app="gallery"><span class="app-icon gallery">◈</span><b>Galerie</b></button>
+          <button class="app vortex-press" data-app="pulse"><span class="app-icon pulse">◌</span><b>Pulse</b></button>
+          <button class="app vortex-press" data-app="music"><span class="app-icon music">♫</span><b>Musik</b></button>
+          <button class="app vortex-press" data-app="messages"><span class="app-icon messages">✧</span><b>Nachrichten</b></button>
+          <button class="app vortex-press" data-app="files"><span class="app-icon files">▣</span><b>Dateien</b></button>
+          <button class="app vortex-press" data-app="hub"><span class="app-icon hub">⌾</span><b>System</b></button>
+          <button class="app vortex-press" data-app="update"><span class="app-icon update">✓</span><b>Updates</b></button>
+        </section>
+
+        <nav class="dock dock-5 vortex-reveal delay-4" data-dock aria-label="App-Dock"><button class="dock-app vortex-press" data-app="phone" aria-label="Telefon">⌕</button><button class="dock-app vortex-press" data-app="browser" aria-label="Browser">◒</button><button class="dock-app vortex-press" data-app="camera" aria-label="Kamera">◉</button><button class="dock-app vortex-press" data-app="messages" aria-label="Nachrichten">✧</button><button class="dock-app vortex-press" data-app="hub" aria-label="System Hub">⌾</button></nav>
+      </section>
+
+      <aside class="overlay control-center" data-overlay="control" hidden aria-label="Vortex Control Center"><div class="overlay-handle"></div><div class="overlay-title"><p>VORTEX CONTROL</p><h2>Schnellzugriff</h2><button data-action="close-overlay" aria-label="Schließen">×</button></div><div class="control-grid"><button class="control active vortex-press" data-control="wifi"><span>⌁</span><b>WLAN</b><small>Vortex Home</small></button><button class="control active vortex-press" data-control="bluetooth"><span>ᛒ</span><b>Bluetooth</b><small>Verbunden</small></button><button class="control vortex-press" data-control="focus"><span>◌</span><b>Fokus</b><small>Aus</small></button><button class="control vortex-press" data-control="torch"><span>✦</span><b>Licht</b><small>Aus</small></button></div><div class="brightness"><span>☼</span><input type="range" min="10" max="100" value="72" aria-label="Helligkeit"><span>☀</span></div><button class="open-hub vortex-press" data-app="hub"><span>⌾</span><div><p>SYSTEM HUB</p><b>Mehr Einstellungen und Status</b></div><i>›</i></button></aside>
+
+      <aside class="overlay app-drawer" data-overlay="drawer" hidden aria-label="App-Übersicht"><div class="overlay-handle"></div><div class="overlay-title"><p>ALLE APPS</p><h2>Entdecke Vortex.</h2><button data-action="close-overlay" aria-label="Schließen">×</button></div><label class="search"><span>⌕</span><input data-search placeholder="Apps suchen" aria-label="Apps suchen"></label><div class="drawer-list"><button data-app="camera"><span class="app-icon camera">◉</span>Kamera<i>›</i></button><button data-app="gallery"><span class="app-icon gallery">◈</span>Galerie<i>›</i></button><button data-app="pulse"><span class="app-icon pulse">◌</span>Pulse<i>›</i></button><button data-app="hub"><span class="app-icon hub">⌾</span>System Hub<i>›</i></button><button data-app="update"><span class="app-icon update">✓</span>Systemupdates<i>›</i></button></div></aside>
+
+      <aside class="overlay edit-sheet" data-overlay="edit" hidden aria-label="Homescreen anpassen"><div class="overlay-handle"></div><div class="overlay-title"><p>PERSONALISIEREN</p><h2>Mach es zu deinem.</h2><button data-action="close-overlay" aria-label="Schließen">×</button></div><section class="option-group"><p>APP-RASTER</p><div class="segment" data-setting="grid"><button data-value="4" class="selected">4 Spalten</button><button data-value="5">5 Spalten</button></div></section><section class="option-group"><p>DOCK</p><div class="segment" data-setting="dock"><button data-value="3">3 Apps</button><button data-value="5" class="selected">5 Apps</button></div></section><section class="option-group"><p>START-WIDGET</p><div class="widget-picker" data-setting="widget"><button data-value="glance" class="selected">Glance</button><button data-value="focus">Fokus</button><button data-value="update">Update</button></div></section><section class="option-group motion-option"><div><p>HINTERGRUNDBEWEGUNG</p><small>Ruhige Neon-Lichtfelder</small></div><button class="switch is-on" data-action="motion" aria-pressed="true" aria-label="Hintergrundbewegung umschalten"><i></i></button></section><section class="gesture-config"><p>GESTENBELEGUNG</p><label>Von oben nach unten <select data-gesture="down"><option value="control">Control Center</option><option value="drawer">App-Übersicht</option><option value="focus">Fokusmodus</option><option value="torch">Licht</option></select></label><label>Von unten nach oben <select data-gesture="up"><option value="drawer">App-Übersicht</option><option value="control">Control Center</option><option value="focus">Fokusmodus</option><option value="torch">Licht</option></select></label><label>Doppeltippen <select data-gesture="double"><option value="lock">Sperrbildschirm</option><option value="control">Control Center</option><option value="focus">Fokusmodus</option><option value="torch">Licht</option></select></label></section><p class="edit-hint">Lange auf den Homescreen drücken, um diese Ansicht jederzeit zu öffnen.</p></aside>
+
+      <aside class="lock-layer" data-overlay="lock" hidden aria-label="Sperrbildschirm"><span>◌</span><p>VORTEXOS</p><h2>Geschützt.</h2><button class="vortex-press" data-action="unlock">Zum Entsperren tippen</button></aside>
+      <div class="home-indicator" aria-hidden="true"></div><aside class="toast" role="status" aria-live="polite"></aside>
+    </section>
+    <aside class="briefing"><div class="brand"><span>◌</span> VORTEX<span>OS</span></div><p>HOME & GESTURES · 0.1</p><h2>Dein Raum.<br>Dein Rhythmus.</h2><div class="feature-list"><span>Gesten</span><span>Widgets</span><span>Dock</span><span>Persönlich</span></div><small>Interaktive Designstudie für VortexOS auf Xiaomi 12T.</small></aside>
+  </main>
+  <script src="homescreen-preview.js"></script>
+</body>
+</html>
