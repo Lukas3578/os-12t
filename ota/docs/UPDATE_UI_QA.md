@@ -10,3 +10,5 @@
 
 > Die Vorschau visualisiert ausschließlich den vorgesehenen Ablauf. Die tatsächliche Vertrauensentscheidung bleibt beim OTA-Client und seinem signierten Manifest.
 | Bestätigte Installation | Nach der sichtbaren Bestätigung wechselt die Ansicht zu „Kontrollierter Neustart bereit“ und bestätigt, dass kein sofortiger Neustart ausgelöst wird. | Bestanden |
+| Animierter Neon-Obsidian-Hintergrund | Die ruhigen Lichtfelder, Sternenpunkte und das technische Gitter bilden eine sichtbare, aber nicht störende Tiefe hinter der Oberfläche. | Bestanden |
+| Bewegte Oberflächen | Karten erscheinen gestaffelt, Statuspunkte atmen dezent und die Detailansicht bleibt klar bedienbar. | Bestanden |

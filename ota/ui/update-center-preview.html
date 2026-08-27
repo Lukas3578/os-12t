@@ -6,27 +6,29 @@
   <meta name="color-scheme" content="dark">
   <title>VortexOS Update Center</title>
   <link rel="stylesheet" href="update-center-preview.css">
+  <link rel="stylesheet" href="vortex-motion.css">
 </head>
 <body>
+  <div class="vortex-ambient" aria-hidden="true"><span class="ambient-orb one"></span><span class="ambient-orb two"></span><span class="ambient-orb three"></span><span class="ambient-grid"></span><span class="ambient-stars"></span></div>
   <main class="stage">
-    <section class="phone" aria-label="VortexOS Update Center Vorschau">
+    <section class="phone vortex-device" aria-label="VortexOS Update Center Vorschau">
       <div class="cutout" aria-hidden="true"></div>
       <header class="statusbar"><span>12:30</span><span>▰▰▰ ⌁ ▰</span></header>
       <div class="screen">
         <header class="appbar"><button aria-label="Zurück">‹</button><div><p>VORTEXOS</p><h1>Systemupdates</h1></div><button class="more" aria-label="Weitere Optionen">···</button></header>
 
-        <section class="hero-card" aria-label="Update bereit">
+        <section class="hero-card vortex-reveal" aria-label="Update bereit">
           <div class="hero-sheen" aria-hidden="true"></div>
-          <span class="orb-check">✓</span>
+          <span class="orb-check vortex-breathe">✓</span>
           <div class="hero-copy"><p>UPDATE BEREIT</p><h2>VortexOS <span>0.2.0</span></h2><strong>Alles geprüft. Bereit, wenn du es bist.</strong></div>
           <button class="expand" data-action="toggle-details" aria-expanded="false" aria-controls="integrity-details">Details <span>⌄</span></button>
         </section>
 
-        <section class="trust-row" aria-label="Update-Schutzstatus">
+        <section class="trust-row vortex-reveal delay-1" aria-label="Update-Schutzstatus">
           <span><i class="trust-dot"></i>Signatur gültig</span><span><i class="trust-dot"></i>WLAN</span><span><i class="trust-dot"></i>75 % Akku</span>
         </section>
 
-        <section class="update-card" aria-labelledby="changes-title">
+        <section class="update-card vortex-reveal delay-2" aria-labelledby="changes-title">
           <div class="section-heading"><div><p>NEU IN 0.2.0</p><h2 id="changes-title">Schneller. Ruhiger. Sicherer.</h2></div><span class="size">842 MB</span></div>
           <ul class="changes"><li><span>◌</span><div><b>Vortex Glance</b><small>Medien, Fokus und Systemstatus greifen ruhiger ineinander.</small></div></li><li><span>⌾</span><div><b>Guard erweitert</b><small>Klare Berechtigungszustände und präzisere Schutzmeldungen.</small></div></li><li><span>ϟ</span><div><b>Akku-Balance</b><small>Optimierte Ladephasen für lange, ruhige Tage.</small></div></li></ul>
           <button class="notes" data-action="show-notes">Alle Release-Notizen <span>→</span></button>
@@ -36,11 +38,11 @@
           <div><p>GERÄT</p><strong>Xiaomi 12T · plato</strong></div><div><p>PAKET</p><strong>SHA-256 · c9c95d37…a855db0</strong></div><div><p>VORBEREITET</p><strong>Heute · 12:28 · nur lokal</strong></div>
         </section>
 
-        <section class="install-card" aria-label="Update-Installation">
+        <section class="install-card vortex-reveal delay-3" aria-label="Update-Installation">
           <div class="install-head"><div><span class="install-icon">↻</span><div><p>INSTALLATION</p><strong data-install-title>Beim nächsten Neustart</strong></div></div><span class="ready-badge" data-install-badge>Bereit</span></div>
           <p data-install-copy>Das Update ist heruntergeladen und geprüft. Deine Apps und Daten bleiben erhalten.</p>
-          <button class="primary-action" data-action="confirm-update"><span data-confirm-icon>✓</span><span data-confirm-label>Installation bestätigen</span></button>
-          <button class="later-action" data-action="defer-update">Später erinnern</button>
+          <button class="primary-action vortex-press" data-action="confirm-update"><span data-confirm-icon>✓</span><span data-confirm-label>Installation bestätigen</span></button>
+          <button class="later-action vortex-press" data-action="defer-update">Später erinnern</button>
         </section>
 
         <p class="privacy-note"><span>⌾</span> VortexOS installiert niemals ein Update ohne deine Bestätigung.</p>

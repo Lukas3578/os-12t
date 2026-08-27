@@ -14,6 +14,7 @@ Es ist bewusst noch **kein flashbares Betriebssystem**. Bevor ein Update auf dem
 | Schutz vor unbemerkter Installation | Paket wird nur vorbereitet; `confirm` ist erforderlich |
 | Testabdeckung | Lokaler End-to-End-Test für gültige, manipulierte und falsche Artefakte sowie WLAN-/Akkuschutz |
 | Update-Erlebnis | Interaktive Updateansicht mit Details, Release-Notizen, Aufschub und bestätigtem Neustart |
+| Bewegungsdesign | Wiederverwendbarer animierter Neon-Obsidian-Hintergrund, sanfte Kartenübergänge und automatische Reduktion der Bewegung |
 | Partitionsschutz | Kein getesteter `plato`-Installer vorhanden; Anwendung wird abgelehnt |
 
 ## Lokale Prüfung
@@ -60,6 +61,8 @@ Lade anschließend das OTA-Paket als Asset eines GitHub-Releases mit dem Tag `v0
 | `ota/docs/RELEASE_CHECKLIST.md` | Abnahmekriterien vor jeder Stable-Veröffentlichung |
 | `ota/docs/UPDATE_EXPERIENCE.md` | Zustände, Schutzregeln und Texte der Update-Oberfläche |
 | `ota/ui/update-center-preview.html` | Interaktive Neon-Obsidian-Vorschau des VortexOS-Updatebereichs |
+| `ota/ui/vortex-motion.css` | Systemweit einbindbare Bewegungssprache und animierter Hintergrund |
+| `ota/docs/MOTION_SYSTEM.md` | Bewegungsprinzipien, Dauerstufen und Zugänglichkeit |
 
 ## Reference
 
