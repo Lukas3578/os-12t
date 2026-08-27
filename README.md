@@ -15,6 +15,7 @@ Es ist bewusst noch **kein flashbares Betriebssystem**. Bevor ein Update auf dem
 | Testabdeckung | Lokaler End-to-End-Test für gültige, manipulierte und falsche Artefakte sowie WLAN-/Akkuschutz |
 | Update-Erlebnis | Interaktive Updateansicht mit Details, Release-Notizen, Aufschub und bestätigtem Neustart |
 | Bewegungsdesign | Wiederverwendbarer animierter Neon-Obsidian-Hintergrund, sanfte Kartenübergänge und automatische Reduktion der Bewegung |
+| System Hub | Interaktive Verbindung-, Fokus-, Medien-, Speicher-, Datenschutz- und Update-Steuerung als zentrale VortexOS-Ansicht |
 | Partitionsschutz | Kein getesteter `plato`-Installer vorhanden; Anwendung wird abgelehnt |
 
 ## Lokale Prüfung
@@ -63,6 +64,8 @@ Lade anschließend das OTA-Paket als Asset eines GitHub-Releases mit dem Tag `v0
 | `ota/ui/update-center-preview.html` | Interaktive Neon-Obsidian-Vorschau des VortexOS-Updatebereichs |
 | `ota/ui/vortex-motion.css` | Systemweit einbindbare Bewegungssprache und animierter Hintergrund |
 | `ota/docs/MOTION_SYSTEM.md` | Bewegungsprinzipien, Dauerstufen und Zugänglichkeit |
+| `system-hub/ui/system-hub-preview.html` | Interaktives VortexOS-System-Hub mit zusätzlichen Alltagsfunktionen |
+| `system-hub/docs/SYSTEM_HUB.md` | Funktionsumfang, Systemgrenzen und Updateverknüpfung des Hubs |
 
 ## Reference
 

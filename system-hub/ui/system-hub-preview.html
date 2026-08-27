@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>VortexOS System Hub</title>
+  <link rel="stylesheet" href="../../ota/ui/vortex-motion.css">
+  <link rel="stylesheet" href="system-hub-preview.css">
+</head>
+<body>
+  <div class="vortex-ambient" aria-hidden="true"><span class="ambient-orb one"></span><span class="ambient-orb two"></span><span class="ambient-orb three"></span><span class="ambient-grid"></span><span class="ambient-stars"></span></div>
+  <main class="stage">
+    <section class="phone vortex-device" aria-label="VortexOS System Hub Vorschau">
+      <div class="cutout" aria-hidden="true"></div>
+      <header class="statusbar"><span data-time>12:30</span><span>▰▰▰ ⌁ <b data-battery>75</b>%</span></header>
+      <div class="screen">
+        <header class="welcome vortex-reveal"><div><p>GUTEN ABEND, LUKAS</p><h1>Dein <span>Vortex.</span></h1></div><button class="profile vortex-press" aria-label="Profil öffnen">L</button></header>
+
+        <section class="glance-card vortex-reveal delay-1" aria-label="Gerätestatus">
+          <div class="glance-orbit" aria-hidden="true"></div><div><p>GERÄTESTATUS</p><h2>Alles läuft ruhig.</h2><span class="safe-status"><i></i> Guard ist aktiv</span></div><div class="battery-ring"><strong data-battery-ring>75</strong><small>%</small></div>
+        </section>
+
+        <section class="quick-grid vortex-reveal delay-2" aria-label="Schnellsteuerung">
+          <button class="quick active vortex-press" data-toggle="wifi"><span>⌁</span><b>WLAN</b><small data-label="wifi">Vortex Home</small></button>
+          <button class="quick active vortex-press" data-toggle="bluetooth"><span>ᛒ</span><b>Bluetooth</b><small data-label="bluetooth">Verbunden</small></button>
+          <button class="quick vortex-press" data-toggle="focus"><span>◌</span><b>Fokus</b><small data-label="focus">Aus</small></button>
+          <button class="quick vortex-press" data-toggle="torch"><span>✦</span><b>Licht</b><small data-label="torch">Aus</small></button>
+        </section>
+
+        <section class="flow-card vortex-reveal delay-3" aria-labelledby="flow-title"><div class="section-top"><div><p>VORTEX FLOW</p><h2 id="flow-title">Wie soll sich heute anfühlen?</h2></div><button class="vortex-press" data-action="flow-info" aria-label="Mehr über Vortex Flow">i</button></div><div class="scene-row"><button class="scene selected vortex-press" data-scene="balance"><span>◐</span><b>Balance</b></button><button class="scene vortex-press" data-scene="quiet"><span>☾</span><b>Ruhe</b></button><button class="scene vortex-press" data-scene="boost"><span>ϟ</span><b>Boost</b></button></div></section>
+
+        <section class="media-card vortex-reveal delay-4" aria-label="Mediensteuerung"><div class="cover"><span>◌</span></div><div class="media-copy"><p>VORTEX GLANCE</p><b>Neon Drift</b><small>Vortex Audio · 02:18</small></div><button class="play vortex-press" data-action="media" aria-label="Wiedergabe starten"><span>▶</span></button></section>
+
+        <section class="health-row vortex-reveal delay-4" aria-label="Gerätegesundheit"><button class="health-card vortex-press" data-action="storage"><span class="health-icon purple">▣</span><div><p>SPEICHER</p><b>184 GB frei</b><small>72 % verfügbar</small></div></button><button class="health-card vortex-press" data-action="privacy"><span class="health-icon mint">⌾</span><div><p>PRIVATSPHÄRE</p><b>Alles geschützt</b><small>0 Warnungen</small></div></button></section>
+
+        <button class="update-card vortex-reveal delay-4 vortex-press" data-action="update" aria-label="Systemupdate öffnen"><span class="update-shield">✓</span><div><p>SYSTEMUPDATE</p><b>VortexOS 0.2.0 ist bereit</b><small>Signiert · WLAN geschützt · Bestätigung nötig</small></div><span class="arrow">›</span></button>
+      </div>
+      <div class="home-indicator" aria-hidden="true"></div><aside class="toast" role="status" aria-live="polite"></aside>
+    </section>
+    <aside class="briefing"><div class="brand"><span>◌</span> VORTEX<span>OS</span></div><p>SYSTEM HUB · 0.1</p><h2>Alles Wichtige.<br>Ein klarer Ort.</h2><div class="feature-list"><span>Verbindung</span><span>Flow</span><span>Guard</span><span>Update bereit</span></div><small>Interaktive Systemstudie mit klarer Trennung zwischen Ansicht und späteren Systemdiensten.</small></aside>
+  </main>
+  <script src="system-hub-preview.js"></script>
+</body>
+</html>

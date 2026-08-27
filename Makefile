@@ -19,6 +19,7 @@ lint:
 	@sh -n $(OTA)/release/make-release.sh
 	@sh -n $(OTA)/tests/test-vortex-update.sh
 	@node --check $(OTA)/ui/update-center-preview.js
+	@node --check $(ROOT)/system-hub/ui/system-hub-preview.js
 	@printf '%s\n' 'Shell- und UI-Syntax: OK'
 
 test: lint
