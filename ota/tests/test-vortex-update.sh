@@ -30,16 +30,17 @@ PAYLOAD_SIZE="$(wc -c < "$ROOT/fixtures/vortexos-plato-0.2.0.ota" | tr -d ' ')"
 write_manifest() {
   device="$1"
   payload_url="$2"
+  version="${3:-0.2.0}"
   cat > "$ROOT/fixtures/stable.json" <<EOF
 {
   "schema": 1,
-  "version": "0.2.0",
+  "version": "$version",
   "device": "$device",
   "min_version": "0.1.0",
   "payload_url": "$payload_url",
   "size_bytes": $PAYLOAD_SIZE,
   "sha256": "$PAYLOAD_SHA",
-  "notes_url": "https://github.com/Lukas3578/os-12t/releases/tag/v0.2.0"
+  "notes_url": "https://github.com/Lukas3578/os-12t/releases/tag/v$version"
 }
 EOF
   openssl pkeyutl -sign -inkey "$ROOT/keys/release-private.pem" -rawin -in "$ROOT/fixtures/stable.json" -out "$ROOT/fixtures/stable.json.sig"
@@ -79,7 +80,16 @@ POLL_INTERVAL_HOURS="12"
 MAX_ASSET_BYTES="2147483648"
 AUTO_DOWNLOAD="1"
 REQUIRE_INTERACTIVE_CONFIRMATION="1"
+AUTO_DOWNLOAD_WIFI_ONLY="1"
+BATTERY_MIN_PERCENT="50"
+BATTERY_CAPACITY_PATH="$ROOT/battery-capacity"
+BATTERY_STATUS_PATH="$ROOT/battery-status"
+NETWORK_TYPE_PATH="$ROOT/network-type"
 EOF
+
+printf 'cellular\n' > "$ROOT/network-type"
+printf '75\n' > "$ROOT/battery-capacity"
+printf 'Discharging\n' > "$ROOT/battery-status"
 
 if [ -n "${VORTEX_UPDATE_CLIENT:-}" ]; then
   CLIENT="$VORTEX_UPDATE_CLIENT"
@@ -103,20 +113,41 @@ else
   fail 'signiertes plato-Manifest wird erkannt'
 fi
 
-if run_client stage > "$ROOT/stage.out" 2> "$ROOT/stage.err" && \
+if run_client auto > "$ROOT/deferred-network.out" 2> "$ROOT/deferred-network.err" && \
+  grep -q '"state": "deferred"' "$ROOT/state/status.json" && \
+  ! test -e "$ROOT/cache/vortexos-plato-0.2.0.ota"; then
+  pass 'Automatischer Download wartet auf vertrauenswürdiges WLAN'
+else
+  fail 'Automatischer Download wartet auf vertrauenswürdiges WLAN'
+fi
+
+printf 'wifi\n' > "$ROOT/network-type"
+printf '25\n' > "$ROOT/battery-capacity"
+if run_client auto > "$ROOT/deferred-battery.out" 2> "$ROOT/deferred-battery.err" && \
+  grep -q 'mindestens 50 % Akku' "$ROOT/state/status.json" && \
+  ! test -e "$ROOT/cache/vortexos-plato-0.2.0.ota"; then
+  pass 'Automatischer Download wartet auf ausreichenden Akkustand'
+else
+  fail 'Automatischer Download wartet auf ausreichenden Akkustand'
+fi
+
+printf '75\n' > "$ROOT/battery-capacity"
+if run_client auto > "$ROOT/stage.out" 2> "$ROOT/stage.err" && \
   grep -q 'Installation wartet auf Bestätigung' "$ROOT/stage.out" && \
   test -f "$ROOT/cache/vortexos-plato-0.2.0.ota" && \
-  grep -q '"state": "downloaded"' "$ROOT/state/pending.json"; then
-  pass 'Paket wird geprüft und kontrolliert vorgemerkt'
+  grep -q '"state": "prepared"' "$ROOT/state/pending.json" && \
+  run_client status-json | grep -q '"state": "prepared"'; then
+  pass 'Automatischer Download prüft und bereitet das Paket vor'
 else
-  fail 'Paket wird geprüft und kontrolliert vorgemerkt'
+  fail 'Automatischer Download prüft und bereitet das Paket vor'
 fi
 
 expect_failure 'Ohne Bestätigung darf kein Installer aufgerufen werden' run_client install
 
 if run_client confirm > "$ROOT/confirm.out" 2> "$ROOT/confirm.err" && \
   grep -q 'Bestätigt: VortexOS 0.2.0' "$ROOT/confirm.out" && \
-  ! grep -q '"confirmed_at": ""' "$ROOT/state/pending.json"; then
+  ! grep -q '"confirmed_at": ""' "$ROOT/state/pending.json" && \
+  run_client status-json | grep -q '"state": "confirmed"'; then
   pass 'Installation verlangt und speichert Nutzerbestätigung'
 else
   fail 'Installation verlangt und speichert Nutzerbestätigung'
@@ -132,6 +163,15 @@ expect_failure 'Manifest für anderes Gerät wird verworfen' run_client check
 
 write_manifest 'plato' 'https://github.com/Lukas3578/os-12t/releases/download/v0.2.0/vortexos-plato-0.2.0.zip'
 expect_failure 'Nicht zugelassener Release-Pfad wird verworfen' run_client check
+
+write_manifest 'plato' 'https://github.com/Lukas3578/os-12t/releases/download/v0.1.0/vortexos-plato-0.1.0.ota' '0.1.0'
+if run_client check > "$ROOT/current.out" 2> "$ROOT/current.err" && \
+  grep -q 'auf dem neuesten Stand' "$ROOT/current.out" && \
+  run_client status-json | grep -q '"state": "current"'; then
+  pass 'Aktuelle Version wird als normaler Systemzustand behandelt'
+else
+  fail 'Aktuelle Version wird als normaler Systemzustand behandelt'
+fi
 
 printf '# Ergebnis: %s erfolgreich, %s fehlgeschlagen\n' "$PASS" "$FAIL"
 test "$FAIL" -eq 0

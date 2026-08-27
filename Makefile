@@ -18,7 +18,8 @@ lint:
 	@sh -n $(OTA)/bin/apply-ota
 	@sh -n $(OTA)/release/make-release.sh
 	@sh -n $(OTA)/tests/test-vortex-update.sh
-	@printf '%s\n' 'Shell-Syntax: OK'
+	@node --check $(OTA)/ui/update-center-preview.js
+	@printf '%s\n' 'Shell- und UI-Syntax: OK'
 
 test: lint
 	@VORTEX_UPDATE_CLIENT=$(OTA)/bin/vortex-update sh $(OTA)/tests/test-vortex-update.sh

@@ -13,15 +13,22 @@ FETCHER="${VORTEX_FETCH:-curl}"
 INSTALLER="${VORTEX_INSTALLER:-/usr/libexec/vortexos/apply-ota}"
 
 log() { printf '%s\n' "[$PROGRAM] $*" >&2; }
-die() { log "FEHLER: $*"; exit 1; }
+die() {
+  log "FEHLER: $*"
+  if [ -n "${STATUS_FILE:-}" ]; then
+    record_status failed "$*"
+  fi
+  exit 1
+}
 usage() {
   cat <<'EOF'
 Verwendung: vortex-update <check|stage|auto|status|confirm|install>
-  check    : signierten Stable-Kanal prüfen
-  stage    : gültiges Update herunterladen und mit SHA-256 prüfen
-  auto     : für den Hintergrunddienst; nur prüfen und ggf. herunterladen
-  status   : vorbereiteten Update-Status anzeigen
-  confirm  : Installation nach sichtbarer Nutzerfreigabe markieren
+  check       : signierten Stable-Kanal prüfen
+  stage       : gültiges Update herunterladen und mit SHA-256 prüfen
+  auto        : für den Hintergrunddienst; nur bei sicherem WLAN und Akku vorladen
+  status      : vorbereiteten Update-Status anzeigen
+  status-json : maschinenlesbaren Status für die Einstellungen-App ausgeben
+  confirm     : Installation nach sichtbarer Nutzerfreigabe markieren
   install  : ausschliesslich den gerätespezifischen Installer aufrufen
 EOF
 }
@@ -37,8 +44,14 @@ EOF
 : "${MAX_ASSET_BYTES:?MAX_ASSET_BYTES fehlt in der Konfiguration}"
 : "${AUTO_DOWNLOAD:?AUTO_DOWNLOAD fehlt in der Konfiguration}"
 : "${REQUIRE_INTERACTIVE_CONFIRMATION:?REQUIRE_INTERACTIVE_CONFIRMATION fehlt in der Konfiguration}"
+AUTO_DOWNLOAD_WIFI_ONLY="${AUTO_DOWNLOAD_WIFI_ONLY:-1}"
+BATTERY_MIN_PERCENT="${BATTERY_MIN_PERCENT:-50}"
+BATTERY_CAPACITY_PATH="${BATTERY_CAPACITY_PATH:-/sys/class/power_supply/battery/capacity}"
+BATTERY_STATUS_PATH="${BATTERY_STATUS_PATH:-/sys/class/power_supply/battery/status}"
+NETWORK_TYPE_PATH="${NETWORK_TYPE_PATH:-/run/vortexos/network/type}"
 
 mkdir -p "$STATE_DIR" "$CACHE_DIR"
+STATUS_FILE="$STATE_DIR/status.json"
 
 fetch() {
   url="$1"
@@ -101,11 +114,47 @@ safe_asset_url() {
 
 now() { date -u '+%Y-%m-%dT%H:%M:%SZ'; }
 
+record_status() {
+  state="$1"
+  message="$2"
+  version="${3:-}"
+  case "$state" in current|checking|available|deferred|downloading|prepared|confirmed|installing|failed) ;; *) die "Ungültiger Update-Status" ;; esac
+  cat > "$STATUS_FILE.tmp" <<EOF
+{
+  "state": "$state",
+  "message": "$message",
+  "version": "$version",
+  "checked_at": "$(now)"
+}
+EOF
+  mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+  chmod 600 "$STATUS_FILE"
+}
+
 channel_files() {
   CHANNEL_MANIFEST="$STATE_DIR/channel.json"
   CHANNEL_SIGNATURE="$STATE_DIR/channel.json.sig"
   fetch "$CHANNEL_URL" "$CHANNEL_MANIFEST"
   fetch "$CHANNEL_URL.sig" "$CHANNEL_SIGNATURE"
+}
+
+auto_download_allowed() {
+  if [ "$AUTO_DOWNLOAD_WIFI_ONLY" = '1' ]; then
+    [ -r "$NETWORK_TYPE_PATH" ] || { record_status deferred 'Download wartet auf vertrauenswürdiges WLAN'; return 1; }
+    [ "$(tr -d '\n' < "$NETWORK_TYPE_PATH")" = 'wifi' ] || { record_status deferred 'Download wartet auf vertrauenswürdiges WLAN'; return 1; }
+  fi
+
+  [ -r "$BATTERY_CAPACITY_PATH" ] || { record_status deferred 'Download wartet auf ausreichenden Akkustatus'; return 1; }
+  [ -r "$BATTERY_STATUS_PATH" ] || { record_status deferred 'Download wartet auf sicheren Akkustatus'; return 1; }
+  battery_percent="$(tr -d '\n' < "$BATTERY_CAPACITY_PATH")"
+  battery_status="$(tr -d '\n' < "$BATTERY_STATUS_PATH")"
+  printf '%s\n' "$BATTERY_MIN_PERCENT" | grep -Eq '^[0-9]{1,3}$' || { record_status deferred 'Update-Regel für Mindestakku ist ungültig'; return 1; }
+  [ "$BATTERY_MIN_PERCENT" -ge 1 ] && [ "$BATTERY_MIN_PERCENT" -le 100 ] || { record_status deferred 'Update-Regel für Mindestakku ist ungültig'; return 1; }
+  printf '%s\n' "$battery_percent" | grep -Eq '^[0-9]{1,3}$' || { record_status deferred 'Akkustatus ist ungültig'; return 1; }
+  [ "$battery_percent" -le 100 ] || { record_status deferred 'Akkustatus ist ungültig'; return 1; }
+  case "$battery_status" in Charging|Discharging|Full|"Not charging") ;; *) record_status deferred 'Akkustatus ist unbekannt'; return 1 ;; esac
+  [ "$battery_percent" -ge "$BATTERY_MIN_PERCENT" ] || { record_status deferred "Download wartet auf mindestens $BATTERY_MIN_PERCENT % Akku"; return 1; }
+  return 0
 }
 
 verify_channel() {
@@ -123,7 +172,7 @@ verify_channel() {
   [ "$UPDATE_DEVICE" = "$DEVICE" ] || die "Update ist für '$UPDATE_DEVICE', nicht für '$DEVICE'"
   valid_version "$UPDATE_VERSION" || die "Ungültige Update-Version"
   valid_version "$UPDATE_MINIMUM" || die "Ungültige Mindestversion"
-  version_is_newer "$UPDATE_VERSION" "$CURRENT_VERSION" || die "Kein neueres Update verfügbar"
+  version_is_newer "$UPDATE_VERSION" "$CURRENT_VERSION" || return 10
   version_is_newer "$CURRENT_VERSION" "$UPDATE_MINIMUM" || [ "$CURRENT_VERSION" = "$UPDATE_MINIMUM" ] || die "Installierte Version erfüllt Mindestversion nicht"
   safe_asset_url "$UPDATE_URL" || die "Payload-URL liegt nicht im festen GitHub-Release-Pfad"
   valid_sha256 "$UPDATE_SHA256" || die "Ungültige SHA-256-Prüfsumme"
@@ -135,7 +184,7 @@ write_pending() {
   pending_tmp="$STATE_DIR/pending.json.tmp"
   cat >"$pending_tmp" <<EOF
 {
-  "state": "downloaded",
+  "state": "prepared",
   "version": "$UPDATE_VERSION",
   "device": "$UPDATE_DEVICE",
   "payload_path": "$CACHE_DIR/vortexos-$UPDATE_DEVICE-$UPDATE_VERSION.ota",
@@ -156,19 +205,44 @@ pending_value() {
 }
 
 check() {
-  channel_files
-  verify_channel
-  printf '%s\n' "Update verfügbar: VortexOS $UPDATE_VERSION für $UPDATE_DEVICE"
-  printf '%s\n' "Änderungen: $UPDATE_NOTES"
-  printf '%s\n' "Paket: $UPDATE_SIZE Byte · SHA-256 $UPDATE_SHA256"
+  CHECK_RESULT='checking'
+  record_status checking 'Signierten Stable-Kanal wird geprüft'
+  if ! channel_files; then
+    record_status failed 'Stable-Kanal konnte nicht abgerufen werden'
+    return 1
+  fi
+  if verify_channel; then
+    CHECK_RESULT='available'
+    record_status available 'Ein geprüftes Update ist verfügbar' "$UPDATE_VERSION"
+    printf '%s\n' "Update verfügbar: VortexOS $UPDATE_VERSION für $UPDATE_DEVICE"
+    printf '%s\n' "Änderungen: $UPDATE_NOTES"
+    printf '%s\n' "Paket: $UPDATE_SIZE Byte · SHA-256 $UPDATE_SHA256"
+    return 0
+  else
+    verify_status="$?"
+  fi
+  if [ "$verify_status" -eq 10 ]; then
+    CHECK_RESULT='current'
+    record_status current 'VortexOS ist auf dem neuesten Stand' "$CURRENT_VERSION"
+    printf '%s\n' "VortexOS $CURRENT_VERSION ist auf dem neuesten Stand."
+    return 0
+  fi
+  record_status failed 'Stable-Kanal wurde verworfen'
+  return "$verify_status"
 }
 
 stage() {
   check
+  [ "$CHECK_RESULT" = 'available' ] || return 0
   target="$CACHE_DIR/vortexos-$UPDATE_DEVICE-$UPDATE_VERSION.ota"
   partial="$target.part"
   rm -f "$partial"
-  fetch "$UPDATE_URL" "$partial"
+  record_status downloading 'Geprüftes Update wird vorbereitet' "$UPDATE_VERSION"
+  if ! fetch "$UPDATE_URL" "$partial"; then
+    rm -f "$partial"
+    record_status failed 'Update-Paket konnte nicht heruntergeladen werden' "$UPDATE_VERSION"
+    return 1
+  fi
   actual_size="$(wc -c < "$partial" | tr -d ' ')"
   [ "$actual_size" = "$UPDATE_SIZE" ] || { rm -f "$partial"; die "Paketgröße stimmt nicht überein"; }
   actual_sha256="$(sha256sum "$partial" | awk '{print $1}')"
@@ -176,13 +250,18 @@ stage() {
   mv "$partial" "$target"
   chmod 600 "$target"
   write_pending
+  record_status prepared 'Update ist vorbereitet und wartet auf Bestätigung' "$UPDATE_VERSION"
   printf '%s\n' "Update vorbereitet: VortexOS $UPDATE_VERSION"
   printf '%s\n' "Installation wartet auf Bestätigung in den Einstellungen."
 }
 
 status() {
   if [ ! -r "$STATE_DIR/pending.json" ]; then
-    printf '%s\n' 'Kein Update vorbereitet.'
+    if [ -r "$STATUS_FILE" ]; then
+      printf '%s\n' "$(json_string message "$STATUS_FILE")"
+    else
+      printf '%s\n' 'Noch keine Update-Prüfung ausgeführt.'
+    fi
     return 0
   fi
   version="$(pending_value version)"
@@ -198,6 +277,21 @@ status() {
   fi
 }
 
+status_json() {
+  if [ -r "$STATUS_FILE" ]; then
+    cat "$STATUS_FILE"
+    return 0
+  fi
+  cat <<EOF
+{
+  "state": "current",
+  "message": "Noch keine Update-Prüfung ausgeführt",
+  "version": "$CURRENT_VERSION",
+  "checked_at": ""
+}
+EOF
+}
+
 confirm() {
   [ -r "$STATE_DIR/pending.json" ] || die "Kein vorbereitetes Update vorhanden"
   version="$(pending_value version)"
@@ -207,6 +301,7 @@ confirm() {
   sed "s/\"confirmed_at\": \"\"/\"confirmed_at\": \"$(now)\"/" "$STATE_DIR/pending.json" > "$STATE_DIR/pending.json.tmp"
   mv "$STATE_DIR/pending.json.tmp" "$STATE_DIR/pending.json"
   chmod 600 "$STATE_DIR/pending.json"
+  record_status confirmed 'Update ist bestätigt und bereit für einen kontrollierten Neustart' "$version"
   printf '%s\n' "Bestätigt: VortexOS $version. Ein kontrollierter Neustart kann jetzt angefordert werden."
 }
 
@@ -217,11 +312,13 @@ install() {
   payload="$(pending_value payload_path)"
   [ -r "$payload" ] || die "Vorbereitetes Paket fehlt"
   [ -x "$INSTALLER" ] || die "Kein gerätespezifischer Installer installiert; Systempartitionen bleiben unverändert"
+  record_status installing 'Kontrollierter Installationslauf wurde angefordert' "$(pending_value version)"
   exec "$INSTALLER" "$payload" "$STATE_DIR/pending.json"
 }
 
 auto() {
   if [ "$AUTO_DOWNLOAD" = '1' ]; then
+    auto_download_allowed || return 0
     stage
   else
     check
@@ -233,6 +330,7 @@ case "${1:-}" in
   stage) stage ;;
   auto) auto ;;
   status) status ;;
+  status-json) status_json ;;
   confirm) confirm ;;
   install) install ;;
   *) usage; exit 64 ;;

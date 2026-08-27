@@ -12,7 +12,8 @@ Es ist bewusst noch **kein flashbares Betriebssystem**. Bevor ein Update auf dem
 | GitHub-Release-Anbindung | Fester Stable-Kanal mit Release-Asset-Pfad für `Lukas3578/os-12t` |
 | Vertrauensprüfung | Ed25519-Manifestsignatur, Gerätekennung, Version, Dateigröße und SHA-256 |
 | Schutz vor unbemerkter Installation | Paket wird nur vorbereitet; `confirm` ist erforderlich |
-| Testabdeckung | Lokaler End-to-End-Test für gültige, manipulierte und falsche Artefakte |
+| Testabdeckung | Lokaler End-to-End-Test für gültige, manipulierte und falsche Artefakte sowie WLAN-/Akkuschutz |
+| Update-Erlebnis | Interaktive Updateansicht mit Details, Release-Notizen, Aufschub und bestätigtem Neustart |
 | Partitionsschutz | Kein getesteter `plato`-Installer vorhanden; Anwendung wird abgelehnt |
 
 ## Lokale Prüfung
@@ -29,8 +30,8 @@ Der erste Befehl führt die OTA-Sicherheitstests aus. Der zweite installiert den
 1. Das Systemabbild enthält `vortex-update`, die Konfiguration sowie den **öffentlichen** Release-Schlüssel.
 2. Der Dienst `vortex-update.timer` startet nach dem Booten und anschließend alle zwölf Stunden mit zufälliger Verzögerung.
 3. Der Dienst prüft `ota/channels/stable.json` und dessen Ed25519-Signatur.
-4. Nur ein neueres, für `plato` bestimmtes Release-Asset mit passender SHA-256-Prüfsumme wird geladen.
-5. VortexOS zeigt dir Version, Änderungen und Prüfsumme. Erst nach deiner Bestätigung darf der geprüfte Geräteinstaller beim kontrollierten Neustart starten.
+4. Nur ein neueres, für `plato` bestimmtes Release-Asset mit passender SHA-256-Prüfsumme wird bei sicherem WLAN und mindestens 50 % Akku geladen.
+5. VortexOS zeigt dir Version, Änderungen, Fortschritt und Prüfsumme. Erst nach deiner Bestätigung darf der geprüfte Geräteinstaller beim kontrollierten Neustart starten.
 
 ## Ersten echten Release vorbereiten
 
@@ -57,6 +58,8 @@ Lade anschließend das OTA-Paket als Asset eines GitHub-Releases mit dem Tag `v0
 | `ota/tests/test-vortex-update.sh` | End-to-End-Sicherheitstests |
 | `ota/docs/SECURITY_MODEL.md` | Sicherheitsmodell und reale Freigabereihenfolge |
 | `ota/docs/RELEASE_CHECKLIST.md` | Abnahmekriterien vor jeder Stable-Veröffentlichung |
+| `ota/docs/UPDATE_EXPERIENCE.md` | Zustände, Schutzregeln und Texte der Update-Oberfläche |
+| `ota/ui/update-center-preview.html` | Interaktive Neon-Obsidian-Vorschau des VortexOS-Updatebereichs |
 
 ## Reference
 
